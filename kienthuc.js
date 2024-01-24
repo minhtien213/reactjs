@@ -397,3 +397,363 @@
             )
         }
 
+        //vd: lấy list value checkbox để call API...
+        const cars2 = [{id: 1,  name: 'Bugatti',},{id: 2, name: 'Lamborghini',},{id: 3, name: 'Maybach',}]
+        function App() {
+            const [checked, setChecked] = useState([]); //tạo mảng chứa id checked
+            function handlCheck(id){ //nhận id đã checked
+                setChecked(prev => { //thay đổi list id checked
+                    const isChecked = checked.includes(id) //theo dõi checkbox đã checked hay chưa
+                    if(isChecked){
+                        return checked.filter(item => item !== id) //nếu đã checked thì loại id đó ra khỏi mảng checked
+                    }else{
+                        return  [...prev, id] //nếu chưa thì giữ các id cũ và thêm id mới
+                    }})
+                } //hàm này chạy xong sẽ render lại vì list checked đã được thay đổi
+                
+            function handlsubmit(id){
+                // call API
+                console.log({ids: checked}) //nhận được mảng ids đã checked
+            }
+            return (
+                <div className="App">
+                    {cars2.map(car => (
+                        <div key={car.id}>
+                            <input type="checkbox"
+                            checked = {checked.includes(car.id)} //nhận lại trạng thái checked sau khi render lại 
+                            onChange={() => handlCheck(car.id)} />  //truyền id đã checked khi checkbox thay tđổi
+                            {car.name}
+                        </div>
+                    ))}
+                    <button onClick={handlsubmit}>Submit</button>
+                </div>
+            )
+        }
+
+//9. useEffect: thực hiện các tác vụ liên quan đến "side effects" trong component.
+    // "Side effects" là các tác vụ không trực tiếp liên quan đến việc render UI:
+        //call API, update DOM, add / remove DOM events, cleanup(hàm dọn dẹp tránh tràng bộ nhớ)...
+
+    //vd: call API khi state thay đổi
+        const tabs = [{id: 1, name: 'posts'}, {id: 2, name: 'comments'}, {id: 3, name: 'albums'}, ]
+
+        const Content = () => {
+            const [contents, setContents] = useState([])
+            const [type, setType] = useState('posts')
+
+            useEffect(() => {
+                console.log(type) //xem thay đổi type
+                fetch(`https://jsonplaceholder.typicode.com/${type}`) //call API theo type
+                    .then(response => response.json())
+                    .then(datas => {
+                        setContents(datas) //setContents để cập nhật lại giá trị của contents.
+                    }) //sau khi setContents thì state thay đổi => re-render component
+                    .catch(err => {console.error(err)})
+            },[type]) //nếu type thay đổi thì callback trong useEffect sẽ được gọi lại
+
+            return (
+                <>
+                    {tabs.map(tab => (
+                        <div key={tab.id}>
+                            <button onClick={() => setType(tab.name)}>{tab.name}</button>
+                        </div>
+                    ))}
+                    <ol>
+                        {contents.map(content => (
+                                <li key={content.id}>{content.title || content.name}</li>
+                            )
+                        )}
+                    </ol>
+                </>   
+            )
+        }
+    
+    //vd: Xử lí event resize window
+        useEffect(() => {
+            const handleResize = () => {
+                // Xử lý sự kiện thay đổi kích thước cửa sổ
+            };
+        
+            window.addEventListener('resize', handleResize);
+        
+            // Hàm cleanup - Hủy đăng ký sự kiện khi component bị hủy
+            return () => {
+                window.removeEventListener('resize', handleResize);
+            };
+        }, []); // []: không có dependency, sẽ chỉ gọi 1 lần khi component được mount
+    
+    //vd: Cập nhật document title 
+        useEffect(() => {
+            document.title = 'New Title';
+        }, []); // []: không có dependency, sẽ chỉ gọi 1 lần khi component được mount
+
+    
+    //LƯU Ý: callback trong useEffect:
+                //luôn được gọi sau khi component được mounted -  nếu không có dependency (mảng rỗng [])
+                //không được gọi ngay lập tức khi component được render lần đầu tiên - nếu có dependency
+
+            //CÓ 3 TRƯỜNG HỢP DÙNG useEffect CHÍNH:
+
+        useEffect(() => {
+            //logic
+        }) //không có dependency - callbacks luôn được gọi sau khi component re-render
+
+        useEffect(() => {
+            //logic
+        }, []) //dependency rỗng => callback chỉ được gọi 1 lần khi component được mounted
+
+        useEffect(() => {
+            //logic
+        }, [dependency]) //có dependency - callback đươcj gọi mỗi khi dependency thay đổi state
+
+
+//10. useLayoutEffect - GIỐNG VỚI useEffect NHƯNG KHÁC THỨ TỰ THỰC HIỆN CODE
+    // useEffect
+        // 1. Cập nhật lại state
+        // 2. Cập nhật DOM (mutated - chỉ cập nhật lại 1 phần trong Dom node thay vì cập nhật all)
+        // 3. Render lại UI
+        // 4. Gọi cleanup nếu deps thay đối - cleanup function nằm trong useEffect
+        // 5. Gọi useEffect callback
+
+    // useLayoutEffect
+        // 1. Cập nhật lại state
+        // 2. Cập nhật DOM (mutated - chỉ cập nhật lại 1 phần trong Dom node thay vì cập nhật all)
+        // 3. Gọi cleanup nếu deps thay đổi (sync) - cleanup function nằm trong useEffect
+        // 4. Gọi useLayoutEffect callback (sync)
+        // 5. Render lại UI
+    
+    //vd: đếm số đến 3 sẽ reset lại từ 0
+        import React, { useState, useLayoutEffect } from 'react'
+        const Content = () => {
+            const [count, setCount] = useState(0)
+            function handleClick(){
+                setCount(count + 1)
+            }
+            useLayoutEffect(() => { //Render lại UI ở bước cuối cùng
+                if(count > 3){
+                    setCount(0)
+                }
+            }, [count])
+            return (
+                <div>
+                    <h1>{count}</h1>
+                    <button onClick={handleClick}>Run</button>
+                </div>
+            )
+        }
+
+//11. useRef - lưu các giá trị qua 1 tham chiếu bên ngoài function component
+        //giúp giữ giá trị của biến khi component re-render
+    import React, { useState, useRef } from 'react'
+    const Content = () => {
+        const [count, setCount] = useState(60)
+    
+        //hoạt động giống như tạo 1 biến global timerId ngoài Content component(let timerId;)
+        //có thể gán giá trị cho biến bằng cách thêm vào trong useRef(123)
+    
+        let timerId = useRef() //useRef() LUÔN trả về 1 OBJECT có 1 key là current
+    
+        let prevCount = useRef() //tạo biến để lấy giá trị state trước đó của count
+        useEffect(() => {
+            prevCount.current = count
+        }, [count])
+        console.log(count, prevCount.current) //xem giá trị trước và sau của count
+    
+        let h1Ref = useRef() //luôn trỏ đến thẻ h1 trong DOM dù cho component re-render
+        useEffect(() => {
+            console.log(h1Ref.current) //get element như js thuần
+        })
+    
+        function handleStart(){
+            timerId.current = setInterval(() => { //gán timerId tạo ra từ setInterval vào key current
+                setCount(prevCount => prevCount - 1)
+            }, 1000)
+        }
+        function handleStop(){
+            clearInterval(timerId.current) //xóa giá trị current đã tạo trước đó
+        }
+        return (
+            <div> 
+                <h1 ref={h1Ref}>{count}</h1>
+                <button onClick={handleStart}>Start</button>
+                <button onClick={handleStop}>Stop</button>
+            </div> //ref={h1Ref} - dùng để get thẻ h1 giống như js thuần(querySelector...)
+        )
+    }
+    //Nếu không dùng useRef() để tạo biến(bên trong function component) thì khi component re-render 
+        //sẽ tạo ra 1 phạm vi hoàn toàn mới - không liên quan đến phạm vi function component chạy trước đó
+        //nên sẽ không tham chiếu được đến giá trị của biến trong function component chạy trước đó
+        //dùng useRef() để lưu được giá trị biến đó ra ngoài phmạ vi function component 
+        //thì khi re-render lại vẫn có thể tham chiếu đến biến đó được(useRef() - giúp tạo biến global )
+
+//12.React.memo HOC : một Higher Order Components được sử dụng để memoize component. 
+                    //Nếu props không thay đổi, component không sẽ được render lại, giúp tối ưu hóa hiệu suất
+//13. useCallback: giúp tránh việc tạo lại hàm callback mỗi khi component render lại, 
+                    //đặc biệt là khi truyền hàm callback xuống các component con.
+
+//14. useMemo: sử dụng để lưu giá trị tính toán và thực hiện TÍNH TOÁN LẠI chỉ khi CẦN THIẾT(state liên quan đến kết quả thay đổi)
+    //vd: tính lại tổng price chỉ khi state products thay đổi
+    const Content = () => { 
+        const [products, setProdusts] = useState([])
+        const [name, setName] = useState('')
+        const [price, setPrice] = useState('')
+        const nameRef = useRef() //lấy element name input
+        const handleClick = () => {
+            setProdusts(prev => [...prev, {
+                name,
+                price: +price //thêm dấu + để chuyển chuỗi thành số
+            }])
+            setName('') //sau khi setName thì thêm value thẻ input để nhận state mới
+            setPrice('')
+            nameRef.current.focus() //focus lại vào ô name input
+        }
+        //hàm tính tổng price dùng useMemo để xác định xem có cần tính lại giá trị result hay không
+        //dựa vào state products trong dependency
+        //nếu không dùng useMemo thì hàm này sẽ chạy lại mỗi khi component re-render
+        const result = useMemo(() => { //dùng useMemo cho hàm tính tổng price của mảng products
+            products.reduce((total, product) => {
+                return total + product.price
+            }, 0)
+        }, [products]) //chỉ tính lại rusult khi cần thiết(state products thay đổi)
+        return (
+            <div> 
+                <input value={name} ref={nameRef} onChange={(e) => setName(e.target.value)} type='text' /><br/>
+                <input value={price} onChange={(e) => setPrice(e.target.value)} type='text' /><br/>
+                <button onClick={handleClick}>Add</button><br/>
+                Total: {products.length > 0 && result}
+                <ul>
+                    {products.map((product, index) => {return (<li key={index}>{product.name} - {product.price}</li>)})}
+                </ul>
+            </div> 
+        )
+    }
+
+
+//14. useReducer: giúp quản lý trạng thái của component(giống State) 
+                //bằng cách sử dụng một hàm reducer để xử lý logic thay đổi trạng thái dựa trên các hành động.
+
+    //Các bước thực hiện:
+        //b1: init state - NGOÀI COMPONENT
+        //b2: action - khai báo các action mà người dùng có thể thực hiện - NGOÀI COMPONENT
+        //b3: reducer function - xác định cách thay đổi trạng thái dựa trên hành động - NGOÀI COMPONENT
+        //b4: khai báo const [biến state, dispatch] = useReducer(reducer, initState) - TRONG COMPONENT
+        //b4: dùng hàm dispatch() gửi hành động đến hàm reducer - TRONG COMPONENT
+
+    //vd: cộng / trừ counters
+        //init state
+        const initState = 0; //khởi tạo biến state
+
+        //action - khai báo các action mà người dùng có thể thực hiện
+        const UP_ACTION = 'up';
+        const DOWN_ACTION = 'down';
+
+        //reducer function - xác định cách thay đổi trạng thái dựa trên hành động
+        function reducer(state, action) { //Reducer nhận STATE HIỆN TẠI và action được gửi từ dispatch
+            switch (action) {
+                case UP_ACTION:
+                    return state + 1
+                case DOWN_ACTION:
+                    return state - 1
+                default:
+                    throw new Error('Invalid action')
+            }
+        }
+        const Content = () => { 
+            const [count, dispatch] = useReducer(reducer, initState) //useReducer nhận hàm reducer và biến khởi tạo state
+                    //count - biến state hiện tại của component nhận giá trị khởi tạo từ initState
+                    //dispatch - dispatch là một hàm được cung cấp bởi useReducer để gửi các hành động đến reducer
+            return (
+                <div> 
+                    <h1>{count}</h1>
+                    <button onClick={() => dispatch(UP_ACTION)}>Up</button>
+                    <button onClick={() => dispatch(DOWN_ACTION)}>Down</button>
+                </div> 
+                //dispatch gởi action cho reducer thực thi thay đổi state
+            )
+        }
+
+    //vd: todo list
+        import { useState, useRef, useReducer } from 'react';
+        //initState - nhiều state => khai báo bằng object
+        const initStates = {
+            job: '',
+            jobs: [],
+        }
+        //actions
+        const SET_JOB = 'set_job'
+        const ADD_JOB = 'add_job'
+        const DELETE_JOB = 'delete_job'
+        //tạo actions bằng function để nhận thêm được dữ liệu từ dispatch
+        //actions function trả về object chứa action và payload( dữ liệu mang theo)
+        const setJob = (payload) => {
+            return {
+                payload,
+                type: SET_JOB,
+            }
+        }
+        const addJob = (payload) => {
+            return {
+                payload,
+                type: ADD_JOB,
+            }
+        }
+        const deleteJob = (index) => {
+            return {
+                index,
+                type: DELETE_JOB,
+            }
+        }
+        //reducer
+        const reducer = (state, action) => {
+            switch (action.type) {
+                case SET_JOB:
+                    return {
+                        ...state, //lưu value cũ trong object
+                        job: action.payload, //chỉ cập nhật lại value cần cập nhật
+                    }
+                case ADD_JOB:
+                    return {
+                        ...state,
+                        jobs: [...state.jobs, action.payload]
+                    }
+                case DELETE_JOB:
+                    return {
+                        ...state,
+                        jobs: state.jobs.filter( (job, index) => index != action.index)
+                    }
+                default:
+                    return 'Invalid action'
+            }
+        }
+
+        function App() {
+            //lần đàu render thì biến state sẽ nhận value từ initStates
+            //từ lần 2 sẽ nhận value từ hàm reducer trả về
+            const [state, dispatch] = useReducer(reducer, initStates)
+            const { job, jobs } = state //lấy job, jobs ra từ biến state
+
+            const inputRef = useRef()
+            
+            const handleClick = () => {
+                dispatch(addJob(job))
+                dispatch(setJob(''))
+                inputRef.current.focus()
+            }
+            // console.log(state)
+            return (
+                <div className="App">
+                    <input ref={inputRef} value={job} type='text' onChange={(e) => {dispatch(setJob(e.target.value))}} />
+                    <button onClick={handleClick}>Add</button>
+                    <ol>
+                        {jobs.map((job, index) => {
+                            return (
+                                <li key = {index}>{job}
+                                    <span onClick={() => {dispatch(deleteJob(index))}}> &times;</span>
+                                </li>
+                            )
+                        })}
+                    </ol>
+                </div>
+            )
+        }
+
