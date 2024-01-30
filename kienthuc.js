@@ -757,3 +757,154 @@
             )
         }
 
+//15. useContext(ngữ cảnh): tạo ra 1 phạm vi để truyền dữ liệu trong phạm vi đó
+                            //tạo 1 context ôm component cha thì dữ liệu sẽ được truyền đến all component con.
+    
+    //ContextName trả về 2 phương thức chính:
+        //provider: dùng ôm component cha, nhận và truyền dữ liệu xuống các component con - là 1 COMPONENT
+            //có 1 prop là value = {data} để truyền data đi
+        //consumer: nhận dữ liệu từ component tkạo ra context - là 1 COMPONENT
+    
+    //file component cha
+    import { useState, createContext } from 'react';
+    import ChildComponet from './ChildComponet';
+
+    export const ThemeContext = createContext() //tạo và xuất context
+    
+    function App() {
+        const [data, setData] = useState('dark')
+        const handleClick = () => {
+            setData(data === 'dark' ? 'light' : 'dark');
+        }
+        
+        return (
+            <ThemeContext.Provider value={data}>
+                <div className="App">
+                    <button onClick={handleClick}>Toggle data</button>
+                    <ChildComponet />
+                </div>
+            </ThemeContext.Provider>
+        )
+    }
+
+    //file con nhận context
+    import { useContext } from "react"
+    import { ContextName } from './App' //lấy context từ file tạo ra context
+
+    const Background = ({theme}) => {
+
+        const data = useContext(ContextName) //lấy data từ context đã tạo và truyền đi bằng 
+                                                //<ThemeContext.Provider value={theme}> thông qua prop value
+
+        return (
+            <div>
+                <p className={data}>Background</p>
+            </div>
+        )
+    }
+    
+//LƯU Ý: 
+    //<ThemeContext.Provider value={theme}> truyền đi data gì thì
+    //const data = useContext(ThemeContext) sẽ nhận data đó
+
+    //vd: Global State with Context + useReducer - todo app
+
+        //file Context
+            import { createContext } from 'react'
+            const Context = createContext()
+            export default Context
+        //file Provider
+        import { useReducer } from "react"
+        import Context from "./Context"
+        import reducer, { initState} from "./reducer"
+        function Provider({ children }) {
+            const [state, dispatch] = useReducer(reducer, initState)
+            const { todos, todoInput } = state
+            return (
+                <Context.Provider value={[state, dispatch]}>
+                    {children}
+                </Context.Provider>
+            )
+        }
+        export default Provider
+        //file hook
+        import { useContext }  from 'react'
+        import Context from './Context'
+        export const useStore = () => {
+            const [ state, dispatch ] = useContext(Context)
+            return [ state, dispatch]
+        }
+        //file index
+        export { default as StoreProvider } from './Provider'
+        export { default as StoreContext } from './Context'
+        export * from './hooks' //export hết các phần export lẻ
+        export * as actions from './actions' //lấy all đưa vào object actions
+        //file constants
+        export const SET_TODO_INPUT = 'set_todo_input';
+        export const ADD_TODO = 'add_todo';
+        export const DELETE_TODO = 'delete_todo';
+        export const EDIT_TODO = 'edit_todo';
+        //file actions
+        import { SET_TODO_INPUT, ADD_TODO, DELETE_TODO, EDIT_TODO } from "./constants";
+        export function setTodoInput(payload) {
+            return {
+                type: SET_TODO_INPUT,
+                payload
+            }
+        }
+        export function addTodo(payload) {
+            return {
+                type: ADD_TODO,
+                payload
+            }
+        }
+        export function deleteTodo(index) {
+            return {
+                type: DELETE_TODO,
+                index
+            }
+        }
+        export function editTodo(todoInput, index) {
+            return {
+                type: EDIT_TODO,
+                todoInput,
+                index
+            }
+        }
+        //file reducer
+        import { SET_TODO_INPUT, ADD_TODO, DELETE_TODO, EDIT_TODO } from './constants'
+        const initState = {
+            todos: [],
+            todoInput: '',
+        }
+        function reducer(state, action) {
+            switch (action.type) {
+                case SET_TODO_INPUT:
+                    return {
+                        ...state,
+                        todoInput: action.payload,
+                    }
+                case ADD_TODO:
+                    return {
+                        ...state,
+                        todos: [...state.todos, action.payload],
+                    }
+                case DELETE_TODO:
+                    return {
+                        ...state,
+                        todos: state.todos.filter( (todo, index) => index != action.index)
+                    }
+                    case EDIT_TODO:
+                        return {
+                            ...state,
+                            todos: [...state.todos, state.todos[action.index] = action.todoInput]
+                        }
+                default: 
+                    throw new Error('Invalid action type')
+            }
+        }
+        export {initState} //export lẻ ở cuối file
+        export default reducer
+
+//16. useImperativeHandle() hook
+
