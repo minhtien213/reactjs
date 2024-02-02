@@ -826,10 +826,10 @@
                 </Context.Provider>
             )
         }
-        export default Provider
+        //export default Provider
         //file hook
         import { useContext }  from 'react'
-        import Context from './Context'
+        import Context1 from './Context'
         export const useStore = () => {
             const [ state, dispatch ] = useContext(Context)
             return [ state, dispatch]
@@ -873,7 +873,7 @@
         }
         //file reducer
         import { SET_TODO_INPUT, ADD_TODO, DELETE_TODO, EDIT_TODO } from './constants'
-        const initState = {
+        const initState12 = {
             todos: [],
             todoInput: '',
         }
@@ -904,7 +904,17 @@
             }
         }
         export {initState} //export lẻ ở cuối file
-        export default reducer
+        //export default reducer
 
 //16. useImperativeHandle() hook
 
+
+
+//########################
+//Cài đặt customize-cra để tuỳ chỉnh cấu hình Webpack - tạo file config-overrides
+    //https://www.youtube.com/watch?v=R4HQI7B4qbw&list=PL_-VfJajZj0UXjlKfBwFX73usByw3Ph9Q&index=57&pp=iAQB
+
+//Cài đặt babel plugin module resolver - cấu hình để truy cập nhanh đường dẫn đến các file - tại file .babelrc
+    //https://www.youtube.com/watch?v=wwGkGi1WFgg&list=PL_-VfJajZj0UXjlKfBwFX73usByw3Ph9Q&index=58
+    
+//
