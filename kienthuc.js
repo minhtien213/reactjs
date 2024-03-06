@@ -917,4 +917,6 @@
 //Cài đặt babel plugin module resolver - cấu hình để truy cập nhanh đường dẫn đến các file - tại file .babelrc
     //https://www.youtube.com/watch?v=wwGkGi1WFgg&list=PL_-VfJajZj0UXjlKfBwFX73usByw3Ph9Q&index=58
     
-//
+//Thư viện @tippyjs/react - hiển thị thông tin khi rê chuột vào element(tạo ra các tooltip (gợi ý hoặc thông báo))
+        //làm popper(hiển thị danh sách tìm kiếm dưới ô tìm kiếm...)
+        //Các thuộc tính: https://atomiks.github.io/tippyjs/v5/all-props/
